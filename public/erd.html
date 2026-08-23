@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-ERGO - Diagram ERD Relasi Entitas Basis Data</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #000000;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --primary-accent: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header / Navigation Bar */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--border-color);
+        }
+
+        .title-group h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000000;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-group p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid #000000;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #000000;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            box-shadow: 2px 2px 0px #000000;
+        }
+
+        .btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #000000;
+        }
+
+        .btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #000000;
+        }
+
+        .btn-black {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .btn-black:hover {
+            background: #1e293b;
+        }
+
+        /* ERD Viewer Container */
+        .erd-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .erd-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: #f1f5f9;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .toolbar-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #000000;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .zoom-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            background: #ffffff;
+            border: 2px solid #000000;
+            padding: 4px 10px;
+            border-radius: 6px;
+            min-width: 65px;
+            text-align: center;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        /* Pan & Zoom Viewport */
+        .diagram-viewport {
+            flex: 1;
+            min-height: 70vh;
+            overflow: hidden;
+            position: relative;
+            cursor: grab;
+            background-color: #ffffff;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            user-select: none;
+        }
+
+        .diagram-viewport:active {
+            cursor: grabbing;
+        }
+
+        .diagram-content {
+            transform-origin: 0 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 40px;
+            display: inline-block;
+        }
+
+        .hint-overlay {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mermaid Styles Overrides for Maximum Readability */
+        .mermaid {
+            display: block;
+        }
+
+        .mermaid svg {
+            max-width: none !important;
+            height: auto !important;
+            font-family: 'Inter', sans-serif !important;
+            overflow: visible !important;
+        }
+
+        /* ERD Specific Typography & Lines */
+        .mermaid .entityBox {
+            fill: #ffffff !important;
+            stroke: #000000 !important;
+            stroke-width: 2.5px !important;
+            rx: 6px !important;
+            ry: 6px !important;
+        }
+
+        .mermaid .entityLabel {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 16px !important;
+            font-weight: 800 !important;
+            fill: #000000 !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        .mermaid .attributeBoxOdd, .mermaid .attributeBoxEven {
+            fill: #f8fafc !important;
+            stroke: #cbd5e1 !important;
+            stroke-width: 1px !important;
+        }
+
+        .mermaid text {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 13px !important;
+            fill: #0f172a !important;
+            font-weight: 600 !important;
+        }
+
+        .mermaid .relationshipLine {
+            stroke: #000000 !important;
+            stroke-width: 2.5px !important;
+        }
+
+        .mermaid .relationshipLabelBox {
+            fill: #ffffff !important;
+            stroke: #000000 !important;
+            stroke-width: 1.5px !important;
+            rx: 4px !important;
+            ry: 4px !important;
+        }
+
+        .mermaid .relationshipLabel {
+            fill: #000000 !important;
+            font-weight: 700 !important;
+            font-size: 12px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        /* Collapsible Matrix Section (Optional View) */
+        .collapsible-wrapper {
+            margin-top: 20px;
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 4px 4px 0px var(--border-color);
+            overflow: hidden;
+        }
+
+        .collapsible-header {
+            padding: 14px 20px;
+            background: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            border-bottom: 2px solid transparent;
+        }
+
+        .collapsible-header.active {
+            border-bottom-color: var(--border-color);
+            background: #f8fafc;
+        }
+
+        .collapsible-body {
+            display: none;
+            padding: 20px;
+        }
+
+        .collapsible-body.show {
+            display: block;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .matrix-table th {
+            background: #000000;
+            color: #ffffff;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .matrix-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @media print {
+            .header-bar, .erd-toolbar, .hint-overlay, .collapsible-wrapper { display: none !important; }
+            body { padding: 0; background: white; }
+            .erd-container { border: none; box-shadow: none; }
+            .diagram-viewport { overflow: visible; min-height: auto; background: none; }
+            .diagram-content { transform: scale(0.85) !important; position: static; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div class="header-bar">
+        <div class="title-group">
+            <h1><i class="fa-solid fa-diagram-project"></i> AI-ERGO &bull; ERD Diagram Relasi</h1>
+            <p>Diagram Skema Basis Data Relasional (15 Entitas Utama &amp; Keterkaitan Foreign Key)</p>
+        </div>
+        <div class="actions">
+            <button class="btn btn-black" onclick="downloadPNG()">
+                <i class="fa-solid fa-download"></i> Download PNG (HD)
+            </button>
+            <button class="btn" onclick="toggleFullscreen()">
+                <i class="fa-solid fa-expand" id="fullscreenIcon"></i> Fullscreen
+            </button>
+            <button class="btn" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Cetak / PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- ERD Visual Container -->
+    <div class="erd-container" id="erdContainer">
+        <div class="erd-toolbar">
+            <div class="toolbar-title">
+                <i class="fa-solid fa-network-wired"></i> Visualisasikan Relasi Entitas
+            </div>
+            <div class="controls-group">
+                <button class="btn btn-icon" onclick="zoomIn()" title="Perbesar (Zoom In)">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <button class="btn btn-icon" onclick="zoomOut()" title="Perkecil (Zoom Out)">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <span class="zoom-badge" id="zoomVal">100%</span>
+                <button class="btn btn-icon" onclick="resetZoom()" title="Reset Ukuran (100%)">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                <button class="btn btn-icon" onclick="fitZoom()" title="Paskan ke Layar">
+                    <i class="fa-solid fa-compress"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="diagram-viewport" id="diagramViewport">
+            <div class="diagram-content" id="diagramContent">
+                <div class="mermaid" id="mermaidDiagram">
+erDiagram
+    COMPANIES {
+        bigint id PK
+        string name
+        text address
+        string phone
+        string email
+        enum status
+    }
+
+    DEPARTMENTS {
+        bigint id PK
+        bigint company_id FK
+        string name
+    }
+
+    POSITIONS {
+        bigint id PK
+        bigint company_id FK
+        string name
+    }
+
+    USERS {
+        bigint id PK
+        bigint company_id FK
+        string name
+        string email
+        enum status
+    }
+
+    ROLES {
+        bigint id PK
+        string name
+    }
+
+    PERMISSIONS {
+        bigint id PK
+        string name
+        string module
+    }
+
+    ROLE_PERMISSIONS {
+        bigint id PK
+        bigint role_id FK
+        bigint permission_id FK
+    }
+
+    USER_ROLES {
+        bigint id PK
+        bigint user_id FK
+        bigint role_id FK
+    }
+
+    EMPLOYEES {
+        bigint id PK
+        bigint company_id FK
+        bigint department_id FK
+        bigint position_id FK
+        string employee_number
+        string name
+        enum gender
+        int age
+    }
+
+    JOB_PROFILES {
+        bigint id PK
+        bigint employee_id FK
+        string job_type
+        decimal sitting_hours
+        decimal computer_hours
+    }
+
+    ASSESSMENTS {
+        bigint id PK
+        bigint employee_id FK
+        bigint assessor_id FK
+        date assessment_date
+        int total_score
+        enum risk_level
+    }
+
+    ASSESSMENT_DETAILS {
+        bigint id PK
+        bigint assessment_id FK
+        string body_part_code
+        tinyint score
+    }
+
+    AI_RECOMMENDATIONS {
+        bigint id PK
+        bigint assessment_id FK
+        string ai_provider
+        string ai_model
+    }
+
+    SETTINGS {
+        bigint id PK
+        string setting_key
+        longtext setting_value
+    }
+
+    ACTIVITY_LOGS {
+        bigint id PK
+        bigint user_id FK
+        string module
+        string action
+    }
+
+    COMPANIES ||--o{ DEPARTMENTS : "has (1:N)"
+    COMPANIES ||--o{ POSITIONS : "has (1:N)"
+    COMPANIES ||--o{ USERS : "has (1:N)"
+    COMPANIES ||--o{ EMPLOYEES : "employs (1:N)"
+
+    DEPARTMENTS ||--o{ EMPLOYEES : "belongs (1:N)"
+    POSITIONS ||--o{ EMPLOYEES : "holds (1:N)"
+
+    USERS ||--o{ USER_ROLES : "assigned (1:N)"
+    ROLES ||--o{ USER_ROLES : "has (1:N)"
+
+    ROLES ||--o{ ROLE_PERMISSIONS : "has (1:N)"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "assigned (1:N)"
+
+    EMPLOYEES ||--o{ JOB_PROFILES : "has (1:N)"
+    EMPLOYEES ||--o{ ASSESSMENTS : "undergoes (1:N)"
+
+    USERS ||--o{ ASSESSMENTS : "evaluates (1:N)"
+    ASSESSMENTS ||--o{ ASSESSMENT_DETAILS : "details (1:N)"
+    ASSESSMENTS ||--o{ AI_RECOMMENDATIONS : "generates (1:N)"
+
+    USERS ||--o{ ACTIVITY_LOGS : "logs (1:N)"
+                </div>
+            </div>
+
+            <div class="hint-overlay">
+                <i class="fa-solid fa-hand-pointer"></i> Klik &amp; Drag untuk Menggeser (Pan) &bull; Scroll Mouse / Tombol Controls untuk Zoom
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional Collapsible Summary Matrix -->
+    <div class="collapsible-wrapper">
+        <div class="collapsible-header" id="toggleMatrixHeader" onclick="toggleMatrix()">
+            <span><i class="fa-solid fa-table-list"></i> Lihat Matriks Ringkasan Relasi Database (12 Hubungan Utama)</span>
+            <i class="fa-solid fa-chevron-down" id="matrixIcon"></i>
+        </div>
+        <div class="collapsible-body" id="matrixBody">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Tabel Utama (Parent)</th>
+                        <th>Kardinalitas</th>
+                        <th>Tabel Turunan (Child)</th>
+                        <th>Foreign Key</th>
+                        <th>On Delete Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>companies</td><td>1 : N</td><td>departments</td><td>company_id</td><td>CASCADE</td></tr>
+                    <tr><td>companies</td><td>1 : N</td><td>positions</td><td>company_id</td><td>CASCADE</td></tr>
+                    <tr><td>companies</td><td>1 : N</td><td>users</td><td>company_id</td><td>SET NULL</td></tr>
+                    <tr><td>companies</td><td>1 : N</td><td>employees</td><td>company_id</td><td>CASCADE</td></tr>
+                    <tr><td>departments</td><td>1 : N</td><td>employees</td><td>department_id</td><td>CASCADE</td></tr>
+                    <tr><td>positions</td><td>1 : N</td><td>employees</td><td>position_id</td><td>CASCADE</td></tr>
+                    <tr><td>users</td><td>1 : N</td><td>user_roles</td><td>user_id</td><td>CASCADE</td></tr>
+                    <tr><td>roles</td><td>1 : N</td><td>user_roles</td><td>role_id</td><td>CASCADE</td></tr>
+                    <tr><td>employees</td><td>1 : N</td><td>job_profiles</td><td>employee_id</td><td>CASCADE</td></tr>
+                    <tr><td>employees</td><td>1 : N</td><td>assessments</td><td>employee_id</td><td>CASCADE</td></tr>
+                    <tr><td>assessments</td><td>1 : N</td><td>assessment_details</td><td>assessment_id</td><td>CASCADE</td></tr>
+                    <tr><td>assessments</td><td>1 : N</td><td>ai_recommendations</td><td>assessment_id</td><td>CASCADE</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            securityLevel: 'loose',
+            themeVariables: {
+                darkMode: false,
+                background: '#ffffff',
+                primaryColor: '#ffffff',
+                primaryTextColor: '#000000',
+                primaryBorderColor: '#000000',
+                lineColor: '#000000',
+                secondaryColor: '#f8fafc',
+                tertiaryColor: '#ffffff',
+                fontSize: '14px'
+            }
+        });
+
+        // Pan & Zoom Implementation
+        let scale = 1.0;
+        let pointX = 20;
+        let pointY = 20;
+        let startX = 0;
+        let startY = 0;
+        let isPanning = false;
+
+        const viewport = document.getElementById('diagramViewport');
+        const content = document.getElementById('diagramContent');
+        const zoomVal = document.getElementById('zoomVal');
+
+        function setTransform() {
+            content.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+            zoomVal.innerText = Math.round(scale * 100) + '%';
+        }
+
+        function zoomIn() {
+            scale = Math.min(scale * 1.25, 3.5);
+            setTransform();
+        }
+
+        function zoomOut() {
+            scale = Math.max(scale / 1.25, 0.35);
+            setTransform();
+        }
+
+        function resetZoom() {
+            scale = 1.0;
+            pointX = 20;
+            pointY = 20;
+            setTransform();
+        }
+
+        function fitZoom() {
+            const svg = content.querySelector('svg');
+            if (!svg) return;
+            const vRect = viewport.getBoundingClientRect();
+            const svgBBox = svg.getBBox ? svg.getBBox() : { width: svg.clientWidth || 1600, height: svg.clientHeight || 1200 };
+            
+            const scaleX = (vRect.width - 60) / (svgBBox.width || 1600);
+            const scaleY = (vRect.height - 60) / (svgBBox.height || 1200);
+            
+            scale = Math.max(Math.min(scaleX, scaleY), 0.35);
+            pointX = 20;
+            pointY = 20;
+            setTransform();
+        }
+
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button')) return;
+            isPanning = true;
+            startX = e.clientX - pointX;
+            startY = e.clientY - pointY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            e.preventDefault();
+            pointX = e.clientX - startX;
+            pointY = e.clientY - startY;
+            setTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            isPanning = false;
+        });
+
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const xs = (e.clientX - viewport.getBoundingClientRect().left - pointX) / scale;
+            const ys = (e.clientY - viewport.getBoundingClientRect().top - pointY) / scale;
+            const delta = -e.deltaY;
+            
+            if (delta > 0) {
+                scale = Math.min(scale * 1.12, 3.5);
+            } else {
+                scale = Math.max(scale / 1.12, 0.35);
+            }
+            
+            pointX = (e.clientX - viewport.getBoundingClientRect().left) - xs * scale;
+            pointY = (e.clientY - viewport.getBoundingClientRect().top) - ys * scale;
+            setTransform();
+        }, { passive: false });
+
+        // Auto Fit when Mermaid renders
+        window.addEventListener('load', () => {
+            setTimeout(fitZoom, 600);
+        });
+
+        // High Resolution PNG Download
+        function downloadPNG() {
+            const svgElement = document.querySelector('.mermaid svg');
+            if (!svgElement) {
+                alert('Diagram sedang dimuat, silakan tunggu sejenak...');
+                return;
+            }
+
+            const svgClone = svgElement.cloneNode(true);
+            const bbox = svgElement.getBBox ? svgElement.getBBox() : { width: 1800, height: 1400 };
+            
+            const padding = 60;
+            const width = Math.ceil(bbox.width + padding * 2);
+            const height = Math.ceil(bbox.height + padding * 2);
+
+            svgClone.setAttribute('width', width);
+            svgClone.setAttribute('height', height);
+            svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
+            svgClone.setAttribute('style', 'background-color: #ffffff;');
+
+            const svgData = new XMLSerializer().serializeToString(svgClone);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 3x High Definition Scale Factor
+            const scaleFactor = 3;
+            canvas.width = width * scaleFactor;
+            canvas.height = height * scaleFactor;
+
+            const img = new Image();
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = function() {
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.scale(scaleFactor, scaleFactor);
+                ctx.drawImage(img, 0, 0);
+                URL.revokeObjectURL(url);
+
+                const pngUrl = canvas.toDataURL('image/png');
+                const downloadLink = document.createElement('a');
+                downloadLink.href = pngUrl;
+                downloadLink.download = 'erd_ai_ergo_relasi_hd.png';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            };
+
+            img.src = url;
+        }
+
+        // Fullscreen Toggle
+        function toggleFullscreen() {
+            const container = document.getElementById('erdContainer');
+            const icon = document.getElementById('fullscreenIcon');
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) container.requestFullscreen();
+                icon.className = 'fa-solid fa-compress';
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                icon.className = 'fa-solid fa-expand';
+            }
+        }
+
+        // Collapsible Matrix Toggle
+        function toggleMatrix() {
+            const header = document.getElementById('toggleMatrixHeader');
+            const body = document.getElementById('matrixBody');
+            const icon = document.getElementById('matrixIcon');
+            
+            header.classList.toggle('active');
+            body.classList.toggle('show');
+            if (body.classList.contains('show')) {
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+    </script>
+</body>
+</html>
