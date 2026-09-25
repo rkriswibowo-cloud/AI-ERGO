@@ -19,10 +19,22 @@ class AssessmentController extends Controller {
         $user = auth_user();
         $companyId = $user['company_id'] ?? null;
 
-        $assessmentModel = new Assessment();
-        $assessments = $assessmentModel->getWithDetails($companyId);
+        $isEmployee = has_role('Employee') && !has_role('Super Admin') && !has_role('Admin K3') && !has_role('Ergonomist');
+        $employeeModel = new Employee();
+        $currentEmployee = $isEmployee ? $employeeModel->findByUser($user) : null;
 
-        $this->view('assessments/index', ['assessments' => $assessments]);
+        $assessmentModel = new Assessment();
+        if ($isEmployee && $currentEmployee) {
+            $assessments = $assessmentModel->getWithDetails($companyId, (int)$currentEmployee['id']);
+        } else {
+            $assessments = $assessmentModel->getWithDetails($companyId);
+        }
+
+        $this->view('assessments/index', [
+            'assessments' => $assessments,
+            'isEmployee' => $isEmployee,
+            'currentEmployee' => $currentEmployee
+        ]);
     }
 
     public function create() {
@@ -30,14 +42,36 @@ class AssessmentController extends Controller {
         $user = auth_user();
         $companyId = $user['company_id'] ?? null;
 
+        $isEmployee = has_role('Employee') && !has_role('Super Admin') && !has_role('Admin K3') && !has_role('Ergonomist');
         $employeeModel = new Employee();
-        $employees = $employeeModel->getWithDetails($companyId);
+        $currentEmployee = $isEmployee ? $employeeModel->findByUser($user) : null;
+
+        if ($isEmployee && !$currentEmployee) {
+            flash('error', 'Profil data pekerja Anda tidak ditemukan di sistem. Harap hubungi Admin K3.', 'danger');
+            redirect('assessments');
+            return;
+        }
+
+        if ($isEmployee) {
+            $employees = [$currentEmployee];
+            $selectedEmpId = (int)$currentEmployee['id'];
+        } else {
+            $employees = $employeeModel->getWithDetails($companyId);
+            $selectedEmpId = isset($_GET['employee_id']) ? (int)$_GET['employee_id'] : null;
+        }
+
         $bodyParts = AssessmentEngine::getBodyParts();
 
         if ($this->isPost()) {
             verify_csrf();
 
-            $employeeId = (int)$this->input('employee_id');
+            // Enforce self-assessment for Employee role (prevent choosing anyone else)
+            if ($isEmployee) {
+                $employeeId = (int)$currentEmployee['id'];
+            } else {
+                $employeeId = (int)$this->input('employee_id');
+            }
+
             $assessmentDate = $this->input('assessment_date', date('Y-m-d'));
             $notes = $this->input('notes');
             $scoresInput = $_POST['scores'] ?? [];
@@ -103,12 +137,15 @@ class AssessmentController extends Controller {
         $this->view('assessments/create', [
             'employees' => $employees,
             'bodyParts' => $bodyParts,
-            'selectedEmpId' => $_GET['employee_id'] ?? null
+            'selectedEmpId' => $selectedEmpId,
+            'isEmployee' => $isEmployee,
+            'currentEmployee' => $currentEmployee
         ]);
     }
 
     public function show($id) {
         RoleMiddleware::check(['Super Admin', 'Admin K3', 'HRD', 'Ergonomist', 'Employee']);
+        $user = auth_user();
 
         $assessmentModel = new Assessment();
         $assessment = $assessmentModel->findWithDetails($id);
@@ -117,6 +154,18 @@ class AssessmentController extends Controller {
             flash('error', 'Assessment tidak ditemukan.', 'danger');
             redirect('assessments');
             return;
+        }
+
+        // Restrict employee from viewing other people's assessments
+        $isEmployee = has_role('Employee') && !has_role('Super Admin') && !has_role('Admin K3') && !has_role('Ergonomist');
+        if ($isEmployee) {
+            $employeeModel = new Employee();
+            $currentEmployee = $employeeModel->findByUser($user);
+            if (!$currentEmployee || (int)$assessment['employee_id'] !== (int)$currentEmployee['id']) {
+                flash('error', 'Akses ditolak: Anda hanya dapat melihat data assessment pribadi Anda.', 'danger');
+                redirect('assessments');
+                return;
+            }
         }
 
         $detailModel = new AssessmentDetail();

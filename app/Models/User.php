@@ -39,8 +39,8 @@ class User extends Model {
     }
 
     public function assignRole(int $userId, int $roleId): bool {
-        $sql = "INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id) 
-                ON DUPLICATE KEY UPDATE role_id = :role_id";
+        $this->rawExecute("DELETE FROM user_roles WHERE user_id = :user_id", ['user_id' => $userId]);
+        $sql = "INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id)";
         return $this->rawExecute($sql, ['user_id' => $userId, 'role_id' => $roleId]);
     }
 }

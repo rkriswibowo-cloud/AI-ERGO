@@ -24,6 +24,19 @@ class ReportController extends Controller {
             return;
         }
 
+        // Restrict employee from viewing other people's individual report
+        $isEmployee = has_role('Employee') && !has_role('Super Admin') && !has_role('Admin K3') && !has_role('Ergonomist');
+        if ($isEmployee) {
+            $user = auth_user();
+            $employeeModel = new Employee();
+            $currentEmployee = $employeeModel->findByUser($user);
+            if (!$currentEmployee || (int)$assessment['employee_id'] !== (int)$currentEmployee['id']) {
+                flash('error', 'Akses ditolak: Anda hanya dapat melihat laporan rekam medis/K3 pribadi Anda.', 'danger');
+                redirect('assessments');
+                return;
+            }
+        }
+
         $detailModel = new AssessmentDetail();
         $details = $detailModel->getByAssessmentId($assessmentId);
 
@@ -68,7 +81,7 @@ class ReportController extends Controller {
     public function exportCsv() {
         RoleMiddleware::check(['Super Admin', 'Admin K3', 'HRD']);
         $user = auth_user();
-        $companyId = $user['company_id'] ?? null;
+        $companyId = isset($_GET['company_id']) && !empty($_GET['company_id']) ? (int)$_GET['company_id'] : ($user['company_id'] ?? null);
 
         $assessmentModel = new Assessment();
         $assessments = $assessmentModel->getWithDetails($companyId);

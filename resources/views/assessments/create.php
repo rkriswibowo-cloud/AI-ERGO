@@ -14,15 +14,31 @@
         <div class="card-body p-4">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
-                    <label class="form-label fw-semibold text-dark">Pilih Pekerja *</label>
-                    <select name="employee_id" class="form-select form-select-lg" required>
-                        <option value="">-- Pilih Pekerja --</option>
-                        <?php foreach ($employees as $e): ?>
-                            <option value="<?= $e['id'] ?>" <?= ($selectedEmpId == $e['id']) ? 'selected' : '' ?>>
-                                <?= sanitize($e['employee_number']) ?> - <?= sanitize($e['name']) ?> (<?= sanitize($e['department_name']) ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <?php if (!empty($isEmployee) && !empty($currentEmployee)): ?>
+                        <label class="form-label fw-semibold text-dark">Data Pekerja / Responden</label>
+                        <input type="hidden" name="employee_id" value="<?= $currentEmployee['id'] ?>">
+                        <div class="p-2 px-3 bg-light border border-primary-subtle rounded-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-bold text-primary mb-0">
+                                    <i class="fa-solid fa-user-check me-1"></i><?= sanitize($currentEmployee['name']) ?>
+                                </div>
+                                <div class="small text-muted">
+                                    <?= sanitize($currentEmployee['employee_number']) ?> &bull; <?= sanitize($currentEmployee['department_name'] ?? 'Mahasiswa') ?>
+                                </div>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fa-solid fa-lock me-1"></i>Penilaian Mandiri</span>
+                        </div>
+                    <?php else: ?>
+                        <label class="form-label fw-semibold text-dark">Pilih Pekerja *</label>
+                        <select name="employee_id" class="form-select form-select-lg" required>
+                            <option value="">-- Pilih Pekerja --</option>
+                            <?php foreach ($employees as $e): ?>
+                                <option value="<?= $e['id'] ?>" <?= ($selectedEmpId == $e['id']) ? 'selected' : '' ?>>
+                                    <?= sanitize($e['employee_number']) ?> - <?= sanitize($e['name']) ?> (<?= sanitize($e['department_name']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold text-dark">Tanggal Assessment</label>

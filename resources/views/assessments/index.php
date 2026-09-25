@@ -1,7 +1,11 @@
 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
         <h4 class="fw-bold text-dark mb-1">Histori Assessment Nordic Body Map</h4>
-        <p class="text-muted small mb-0">Daftar riwayat evaluasi risiko ergonomi seluruh pekerja</p>
+        <?php if (!empty($isEmployee) && !empty($currentEmployee)): ?>
+            <p class="text-muted small mb-0">Riwayat penilaian mandiri keluhan tubuh untuk: <strong class="text-primary"><?= sanitize($currentEmployee['name']) ?></strong> (<?= sanitize($currentEmployee['employee_number']) ?>)</p>
+        <?php else: ?>
+            <p class="text-muted small mb-0">Daftar riwayat evaluasi risiko ergonomi seluruh pekerja</p>
+        <?php endif; ?>
     </div>
     <a href="<?= base_url('assessments/create') ?>" class="btn btn-primary rounded-pill shadow-sm btn-mobile-full">
         <i class="fa-solid fa-plus me-1"></i> Assessment Baru
