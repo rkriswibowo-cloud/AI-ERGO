@@ -15,6 +15,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="<?= assets('css/style.css') ?>" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-color: #f8fafc;
@@ -58,9 +60,13 @@
                     </div>
                 </div>
 
-                <?php if ($msg = flash('login_error')): ?>
+                <?php 
+                $loginErr = flash('login_error');
+                $successMsg = flash('success');
+                if ($loginErr): 
+                ?>
                     <div class="alert alert-danger rounded-3 py-2 small" role="alert">
-                        <i class="fa-solid fa-circle-exclamation me-2"></i><?= sanitize($msg['message']) ?>
+                        <i class="fa-solid fa-circle-exclamation me-2"></i><?= sanitize(is_array($loginErr) ? ($loginErr['message'] ?? '') : (string)$loginErr) ?>
                     </div>
                 <?php endif; ?>
 
@@ -96,6 +102,40 @@
         </div>
     </div>
 </div>
+
+<?php if ($loginErr || $successMsg): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        }
+    });
+
+    <?php if ($loginErr): ?>
+    Toast.fire({
+        icon: 'error',
+        title: 'Gagal Masuk!',
+        text: <?= json_encode(is_array($loginErr) ? ($loginErr['message'] ?? '') : (string)$loginErr) ?>
+    });
+    <?php endif; ?>
+
+    <?php if ($successMsg): ?>
+    Toast.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: <?= json_encode(is_array($successMsg) ? ($successMsg['message'] ?? '') : (string)$successMsg) ?>
+    });
+    <?php endif; ?>
+});
+</script>
+<?php endif; ?>
 
 </body>
 </html>

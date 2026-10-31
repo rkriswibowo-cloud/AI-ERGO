@@ -344,3 +344,31 @@ body {
         padding: 0 !important;
     }
 }
+
+/* SweetAlert2 Toast Modern Theme */
+.swal2-toast {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+    border-radius: 0.85rem !important;
+    border: 1px solid #e2e8f0 !important;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    padding: 0.85rem 1.15rem !important;
+    background: #ffffff !important;
+}
+
+.swal2-toast .swal2-title {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 0 2px 0 !important;
+}
+
+.swal2-toast .swal2-html-container {
+    font-size: 0.85rem !important;
+    color: #475569 !important;
+    margin: 0 !important;
+}
+
+.swal2-toast .swal2-timer-progress-bar {
+    background: #4f46e5 !important;
+}
+

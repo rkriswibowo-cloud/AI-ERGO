@@ -125,21 +125,59 @@
 
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 <?php
-// Display flash messages
+// Display flash messages via SweetAlert Toast
 $flashTypes = [
-    'success' => ['class' => 'success', 'icon' => 'fa-circle-check'],
-    'error'   => ['class' => 'danger',  'icon' => 'fa-triangle-exclamation'],
-    'danger'  => ['class' => 'danger',  'icon' => 'fa-circle-exclamation'],
-    'warning' => ['class' => 'warning', 'icon' => 'fa-exclamation-triangle'],
-    'info'    => ['class' => 'info',    'icon' => 'fa-info-circle']
+    'success' => ['icon' => 'success', 'title' => 'Berhasil!'],
+    'error'   => ['icon' => 'error',   'title' => 'Terjadi Kesalahan!'],
+    'danger'  => ['icon' => 'error',   'title' => 'Terjadi Kesalahan!'],
+    'warning' => ['icon' => 'warning', 'title' => 'Peringatan!'],
+    'info'    => ['icon' => 'info',    'title' => 'Informasi']
 ];
 
-foreach ($flashTypes as $key => $config) {
+$activeFlashes = [];
+foreach ($flashTypes as $key => $meta) {
     if ($msg = flash($key)) {
-        echo '<div class="alert alert-' . $config['class'] . ' alert-dismissible fade show rounded-3 shadow-sm" role="alert">
-                <i class="fa-solid ' . $config['icon'] . ' me-2"></i>' . sanitize($msg['message']) . '
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>';
+        $rawMsg = is_array($msg) ? ($msg['message'] ?? '') : (string)$msg;
+        $title = $meta['title'];
+
+        // Deteksi login berhasil
+        if ($key === 'success' && (stripos($rawMsg, 'Selamat datang') !== false || stripos($rawMsg, 'login') !== false)) {
+            $title = 'Berhasil Masuk!';
+        }
+
+        $activeFlashes[] = [
+            'icon'  => $meta['icon'],
+            'title' => $title,
+            'text'  => $rawMsg
+        ];
     }
 }
 ?>
+
+<?php if (!empty($activeFlashes)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.onmouseenter = Swal.stopTimer;
+                toast.onmouseleave = Swal.resumeTimer;
+            }
+        });
+
+        <?php foreach ($activeFlashes as $item): ?>
+        Toast.fire({
+            icon: <?= json_encode($item['icon']) ?>,
+            title: <?= json_encode($item['title']) ?>,
+            text: <?= json_encode($item['text']) ?>
+        });
+        <?php endforeach; ?>
+    }
+});
+</script>
+<?php endif; ?>
