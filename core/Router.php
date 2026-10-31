@@ -21,15 +21,15 @@ class Router {
         $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
         $baseDir = preg_replace('#/public$#i', '', $scriptDir);
 
-        if (!empty($scriptDir) && $scriptDir !== '/' && strpos($uri, $scriptDir) === 0) {
+        if (!empty($scriptDir) && $scriptDir !== '/' && stripos($uri, $scriptDir) === 0) {
             $uri = substr($uri, strlen($scriptDir));
-        } elseif (!empty($baseDir) && $baseDir !== '/' && strpos($uri, $baseDir) === 0) {
+        } elseif (!empty($baseDir) && $baseDir !== '/' && stripos($uri, $baseDir) === 0) {
             $uri = substr($uri, strlen($baseDir));
         }
 
-        if (strpos($uri, '/public/') === 0) {
+        if (stripos($uri, '/public/') === 0) {
             $uri = substr($uri, 7);
-        } elseif ($uri === '/public') {
+        } elseif (strtolower($uri) === '/public') {
             $uri = '/';
         }
 
@@ -37,6 +37,9 @@ class Router {
         $uri = '/' . trim($uri, '/');
 
         $method = strtoupper($method);
+        if ($method === 'HEAD') {
+            $method = 'GET';
+        }
 
         if (isset(self::$routes[$method])) {
             foreach (self::$routes[$method] as $routePath => $handler) {
