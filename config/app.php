@@ -2,10 +2,10 @@
 // Configuration File: Application Settings
 
 return [
-    'name' => 'AI-ERGO System',
-    'url' => 'http://localhost/ai-ergo',
+    'name' => env('APP_NAME', 'AI-ERGO System'),
+    'url' => env('APP_URL', 'http://localhost/ai-ergo'),
     'base_path' => dirname(__DIR__),
-    'timezone' => 'Asia/Jakarta',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
     'version' => '1.0.0',
-    'debug' => true,
+    'debug' => env('APP_DEBUG', true),
 ];

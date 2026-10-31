@@ -1,0 +1,12 @@
+.git
+.gitignore
+.dockerignore
+docker-compose*.yml
+.env
+.env.*
+*.docx
+docs/
+*.bak
+*.tmp
+ai_ergo_db_data/
+diagnose.php

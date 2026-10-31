@@ -15,3 +15,12 @@ desktop.ini
 # Logs & Temp
 *.log
 error_log
+
+# Environment & Secrets
+.env
+.env.backup
+.env.*.local
+
+# Docker local data
+ai_ergo_db_data/
+

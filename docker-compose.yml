@@ -1,0 +1,72 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_ergo_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8085}:80"
+    environment:
+      APP_NAME: "${APP_NAME:-AI-ERGO System}"
+      APP_URL: "${APP_URL:-http://localhost:8085}"
+      APP_DEBUG: "${APP_DEBUG:-false}"
+      APP_TIMEZONE: "${APP_TIMEZONE:-Asia/Jakarta}"
+      DB_HOST: "db"
+      DB_PORT: 3306
+      DB_NAME: "${DB_NAME:-ai_ergo}"
+      DB_USER: "${DB_USER:-ai_ergo_user}"
+      DB_PASS: "${DB_PASS:-ai_ergo_secret}"
+      AI_DEFAULT_PROVIDER: "${AI_DEFAULT_PROVIDER:-gemini}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+    volumes:
+      - ./public/uploads:/var/www/html/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ai_ergo_network
+
+  db:
+    image: mariadb:10.11
+    container_name: ai_ergo_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD:-root_super_secret}"
+      MYSQL_DATABASE: "${DB_NAME:-ai_ergo}"
+      MYSQL_USER: "${DB_USER:-ai_ergo_user}"
+      MYSQL_PASSWORD: "${DB_PASS:-ai_ergo_secret}"
+    volumes:
+      - ai_ergo_db_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - ai_ergo_network
+
+  # Opsional: Jika menggunakan Cloudflare Tunnel resmi (Zero Trust)
+  # Cukup isi CLOUDFLARE_TUNNEL_TOKEN di .env dan hilangkan tanda komentar (#) di bawah:
+  # tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: ai_ergo_tunnel
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   networks:
+  #     - ai_ergo_network
+  #   depends_on:
+  #     - app
+
+volumes:
+  ai_ergo_db_data:
+    driver: local
+
+networks:
+  ai_ergo_network:
+    driver: bridge

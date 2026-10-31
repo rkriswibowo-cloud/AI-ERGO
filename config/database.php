@@ -2,12 +2,12 @@
 // Configuration File: Database Connection
 
 return [
-    'host' => '127.0.0.1',
-    'port' => 3306,
-    'dbname' => 'ai_ergo',
-    'username' => 'root',
-    'password' => '',
-    'charset' => 'utf8mb4',
+    'host' => env('DB_HOST', '127.0.0.1'),
+    'port' => (int) env('DB_PORT', 3306),
+    'dbname' => env('DB_NAME', 'ai_ergo'),
+    'username' => env('DB_USER', 'root'),
+    'password' => env('DB_PASS', ''),
+    'charset' => env('DB_CHARSET', 'utf8mb4'),
     'options' => [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
